@@ -115,6 +115,7 @@ public class ChatPrincipalController implements Initializable , IChatPrincipal{
 		{
 			clients.add(clientUser);
 			idComunication = Integer.toString(clientUser.getClientUserID());
+			idComunication += "-" + Integer.toString(clientUser.getClientUserID());
 		}
 		else
 		{
@@ -160,10 +161,13 @@ public class ChatPrincipalController implements Initializable , IChatPrincipal{
 
 	@Override
 	public void UpdateFromPropertsUser(ClientUser clientActual) {
-		paneLogin.setVisible(false);
-		paneChat.setDisable(false);
-		this.clientUser = clientActual;
-		txtNameUserSeccao.setText(clientActual.getNomeUser());		
+		if ((clientUser==null))
+		{
+			paneLogin.setVisible(false);
+			paneChat.setDisable(false);
+			this.clientUser = clientActual;
+			txtNameUserSeccao.setText(clientActual.getNomeUser());	
+		}
 	}
 
 	@Override
@@ -180,7 +184,7 @@ public class ChatPrincipalController implements Initializable , IChatPrincipal{
 
 	@Override
 	public void UpdateChat(Comunication comunicationMensagems) {
-		setPropertsComunication(comunicationMensagems.getClientsComunication());
+		setPropertsComunication(comunicationMensagems);
 		if (comunicationMensagems.getComunicationID().equals(comunication.getComunicationID()))
 		{
 			showMensages(comunicationMensagems.getMensage());			
@@ -196,9 +200,10 @@ public class ChatPrincipalController implements Initializable , IChatPrincipal{
 			txtAComunication.clear();				
 		}*/
 	}
-	private void setPropertsComunication (List<ClientUser> users) {
+	private void setPropertsComunication (Comunication users) {
 		showPropertsChat(); 
-		comunication.setClientsComunication(users);
+		comunication.setComunicationID(users.getComunicationID());
+		comunication.setClientsComunication(users.getClientsComunication());
 	}
 	private void showMensages(List<Mensagem> listMensagens) {
 		String content = "";

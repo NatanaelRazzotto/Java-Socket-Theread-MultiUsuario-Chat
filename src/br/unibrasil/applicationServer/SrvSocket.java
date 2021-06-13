@@ -179,9 +179,14 @@ public class SrvSocket implements IMultiComunication {
 	}
 	public synchronized boolean setItemConversationStorage(Comunication newComunication)
 	{
+		int limite = newComunication.getComunicationID().length()-1;
+		String arrayID[] = new String[limite];
+		arrayID = newComunication.getComunicationID().split("-");
+		String condicional = arrayID[0]+"-"+arrayID[1];
+		String condicionalInvertido =  arrayID[1]+"-"+arrayID[0];
 		for (Comunication comunication : comunicationStorage) 
-		{
-			if (comunication.getComunicationID() == newComunication.getComunicationID())
+		{			
+			if ((comunication.getComunicationID().equals(condicional)||comunication.getComunicationID().equals(condicionalInvertido)))
 			{
 				comunication = newComunication;
 				return true;				
@@ -192,14 +197,49 @@ public class SrvSocket implements IMultiComunication {
 	@Override
 	public synchronized Comunication getItemConversationStorage(String comunicationID)
 	{
+		int limite = comunicationID.length()-1;
+		String arrayID[] = new String[limite];
+		arrayID = comunicationID.split("-");
+		String condicional = arrayID[0]+"-"+arrayID[1];
+		String condicionalInvertido =  arrayID[1]+"-"+arrayID[0];
 		for (Comunication comunication : comunicationStorage) 
 		{
-			if (comunication.getComunicationID() == comunicationID)
+			//String a = comunication.getComunicationID().toString();
+			if ((comunication.getComunicationID().equals(condicional)||comunication.getComunicationID().equals(condicionalInvertido)))
 			{
 				return comunication;				
 			}
 		}
 		return null;		
+	}
+	@Override
+	public void removeClientOfConnection(ClientUser cli) {
+			
+		boolean validate = false;
+		for (ClientUser clientSearch : listClientsConnected.keySet())
+		{
+			if (clientSearch.getClientUserID() == cli.getClientUserID())
+			{
+				listClientsConnected.remove(clientSearch);
+				validate = true;
+				break;
+			}			
+		}	
+		if (validate) {		
+			
+			Mensagem mensagem = new Mensagem();
+			mensagem.setClientSender(cli);
+			mensagem.setMensage("Usuário " + cli.getNomeUser() + " Desconectou da Sala....");
+			List<Mensagem> mensagems = new ArrayList<Mensagem>();
+			mensagems.add(mensagem);
+			Comunication comunication = new Comunication();
+			comunication.setMensage(mensagems);
+			DTOMensagemBase dtoMensagemBase = new DTOMensagemBase();
+			dtoMensagemBase.setUsers(getUserOnline());
+			dtoMensagemBase.setComunicationMensagems(comunication);
+			SendGenericClient(dtoMensagemBase);
+		}
+		
 	}
 
 }

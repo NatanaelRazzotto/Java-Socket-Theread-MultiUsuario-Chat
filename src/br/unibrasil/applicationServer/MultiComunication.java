@@ -23,50 +23,30 @@ public class MultiComunication implements Runnable {
 		try {
 			int count = 0;
 			ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
-			//ClientUser cli = (ClientUser) ois.readObject();
 			ClientUser cli =  (ClientUser)  ois.readUnshared();
 			iMultiComunication.SetNewClient(cli,client);	
-			
-		
+					
 			String Mensagem = "";
 			while(!Mensagem.toUpperCase().equals("SAIR"))
 			{				
-				System.out.println("Aguardando Nova Mensagem");			
-				Comunication comunication = (Comunication) ois.readObject();
-				//Comunication  comunication = (Comunication) ois.readUnshared();
-				System.out.println(comunication.getLastItemMensagem().getMensage());
-				//Mensagem = comunication.getMesage();
-				iMultiComunication.SetItemConversationStorage(comunication);
-				iMultiComunication.SendSpecificCliet(comunication.getComunicationID());		
-				
-				
-			}
-			
-/*			
- * 		
-			
-		//	Scanner scanner = new Scanner(client.getInputStream());
-			String recebido = "";
-			
-			while((!recebido.toUpperCase().equals("SAIR"))&&(!recebido.toUpperCase().equals("FECHAR"))) 
-			{
-				count++; 
 				try {
-					//recebido = scanner.nextLine();
-					
-					iMultiComunication.SendAll(recebido);
-					System.out.println("-SERVER mensage: " + recebido);	
-					//cli = (ClientUser) ois.readObject();
-					//recebido = cli.getMensage();
-					
+					System.out.println("Aguardando Nova Mensagem");			
+					Comunication comunication = (Comunication) ois.readObject();
+					//Comunication  comunication = (Comunication) ois.readUnshared();
+					System.out.println(comunication.getLastItemMensagem().getMensage());
+					//Mensagem = comunication.getMesage();
+					iMultiComunication.SetItemConversationStorage(comunication);
+					iMultiComunication.SendSpecificCliet(comunication.getComunicationID());		
 				} catch (Exception e) {
-					recebido = "SAIR";
-				}					
-			}	
-			client.close();O server não morrer*/
+					Mensagem = "SAIR";
+				}				
+			}
+			client.close();
+			iMultiComunication.removeClientOfConnection(cli);
+
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("deu ruim");
+			System.out.println("O Server Encontrou Problemas");
 		}
 	}
 }

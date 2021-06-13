@@ -105,10 +105,11 @@ public class CliSocket implements IClientSocket{
 	@Override
 	public void UpdateChat(DTOMensagemBase dtoMensagemBase) {
 		
-		if (dtoMensagemBase.getClientActual()!=null)
+	
+		if ((dtoMensagemBase.getClientActual()!=null))
 		{
-			chatPrincipal.UpdateFromPropertsUser(dtoMensagemBase.getClientActual());					
-		}
+			chatPrincipal.UpdateFromPropertsUser(dtoMensagemBase.getClientActual());			
+		}				
 		if (dtoMensagemBase.getUsers().size() > 0)
 		{
 			chatPrincipal.UpdateFromUsersOnline(dtoMensagemBase.getUsers());

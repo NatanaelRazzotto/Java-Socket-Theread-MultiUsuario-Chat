@@ -11,4 +11,5 @@ public interface IMultiComunication {
 	void SendSpecificCliet(String comunicationID);
 	void SetItemConversationStorage(Comunication comunication);
 	Comunication getItemConversationStorage(String comunicationID);
+	void removeClientOfConnection(ClientUser cli);
 }
