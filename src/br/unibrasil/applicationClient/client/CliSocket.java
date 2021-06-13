@@ -1,5 +1,6 @@
 package br.unibrasil.applicationClient.client;
 
+import br.unibrasil.applicationClient.application.IChatPrincipal;
 import br.unibrasil.shared.ClientUser;
 import br.unibrasil.shared.Comunication;
 import br.unibrasil.shared.DTOMensagemBase;
@@ -19,32 +20,42 @@ public class CliSocket implements IClientSocket{
 	private Socket client;
 	private ObjectOutputStream objClient;
 	
-	public CliSocket(String host,int port) {
+	private IChatPrincipal chatPrincipal;
+	
+	public CliSocket(IChatPrincipal chatPrincipal,String host,int port) {
+		this.chatPrincipal = chatPrincipal;
 		this.host = host;
 		this.port = port;		
 	//	clientUser = new ClientUser();
 	}
-	public void clientExecute(ClientUser clientUser) {		
-		//DTOMensagemBase dtoMensagemBase = null;
+	public void clientExecute(ClientUser clientUser) throws ClassNotFoundException {		
+		DTOMensagemBase dtoMensagemBase = null;
 		try {
 			client = new Socket(host,port);
 			
 			objClient = new ObjectOutputStream(client.getOutputStream());
-			objClient.writeObject(clientUser);				
-	
-			Thread receiver = new Thread(new ReceiveMessages(client.getInputStream(), this));
-			receiver.start();	
+			objClient.writeObject(clientUser);		
+			
+			//ObjectInputStream objServerSocket = new ObjectInputStream(client.getInputStream());
+			
+			//ObjectInputStream objServeSocket = new ObjectInputStream(client.getInputStream());	
+			//DTOMensagemBase dtoMensagemBse = (DTOMensagemBase) objServeSocket.readObject();
+			
+			
+			Thread receiver = new Thread(new ReceiveMessages(client, this));
+		    receiver.start();				
+		
 			
 		} catch (IOException e) {
 
 			e.printStackTrace();
 		}			
-		//return dtoMensagemBase;
 	}
 	public Comunication sendNewMesagesComunication(Comunication communication) {
 		try 
 		{
 			objClient.writeObject(communication);
+			objClient.flush();
 			System.out.println("Nova mensagem submetida");
 			
 		} catch (Exception e) {
@@ -89,6 +100,30 @@ public class CliSocket implements IClientSocket{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+	}
+	@Override
+	public void UpdateChat(DTOMensagemBase dtoMensagemBase) {
+		
+		if (dtoMensagemBase.getClientActual()!=null)
+		{
+			chatPrincipal.UpdateFromPropertsUser(dtoMensagemBase.getClientActual());					
+		}
+		if (dtoMensagemBase.getUsers().size() > 0)
+		{
+			chatPrincipal.UpdateFromUsersOnline(dtoMensagemBase.getUsers());
+		}
+		if (dtoMensagemBase.getComunicationMensagems() !=null)
+		{
+			chatPrincipal.UpdateChat(dtoMensagemBase.getComunicationMensagems());
+		}
+		
+		
+		/*if (dtoMensagemBase != null)
+		{					
+			setClientSender(dtoMensagemBase.getClientActual());
+			listUsersOnlineBind(dtoMensagemBase);
+		}	*/		
 		
 	}
 }

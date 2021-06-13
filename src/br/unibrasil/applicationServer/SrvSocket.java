@@ -16,7 +16,7 @@ import java.util.Set;
 import br.unibrasil.shared.*;
 
 public class SrvSocket implements IMultiComunication {
-	private ArrayList<PrintStream> listPrintStreams = new ArrayList<PrintStream>();
+//	private ArrayList<PrintStream> listPrintStreams = new ArrayList<PrintStream>();
 	private HashMap<ClientUser, Socket> listClientsConnected = new HashMap<ClientUser, Socket>();
 	private List<Comunication> comunicationStorage = new ArrayList<Comunication>();
 	
@@ -30,7 +30,7 @@ public class SrvSocket implements IMultiComunication {
 					Socket client = server.accept();
 					System.out.println("Conectou!!");
 					
-					listPrintStreams.add(new PrintStream(client.getOutputStream()));
+					//listPrintStreams.add(new PrintStream(client.getOutputStream()));
 					new Thread(new MultiComunication(this,client)).start();
 				}
 			//server.close();  
@@ -42,7 +42,7 @@ public class SrvSocket implements IMultiComunication {
 	}
 	@Override
 	public synchronized void SendAll(String mensage) {
-		listPrintStreams.forEach(saida -> saida.println(mensage));
+		//listPrintStreams.forEach(saida -> saida.println(mensage));
 	}
 	@Override
 	public synchronized void SetNewClient(ClientUser user, Socket socketClient) {
@@ -59,13 +59,40 @@ public class SrvSocket implements IMultiComunication {
 			user.setClientUserID(qtdConected + 1);	
 			listClientsConnected.put(user, socketClient);	
 
-		}	
-		Set<ClientUser> users = listClientsConnected.keySet();
-		List<ClientUser> list = new ArrayList<ClientUser>(users);
+		}			
 		
 		dtoMensagemBase.setClientActual(user);
-		dtoMensagemBase.setUsers(list);
-		SendListClientsConenction(dtoMensagemBase,socketClient);
+		dtoMensagemBase.setUsers(getUserOnline());
+		//SendListClientsConenction(dtoMensagemBase,socketClient);
+		SendGenericClient(dtoMensagemBase);
+	}
+	
+	private List<ClientUser> getUserOnline()
+	{
+		Set<ClientUser> users = listClientsConnected.keySet();
+		return new ArrayList<ClientUser>(users);
+	}
+	
+	private void preparingSendMensagems(Comunication comunicate,Socket Client) 
+	{
+		DTOMensagemBase dtoMensagemBase = new DTOMensagemBase();
+		dtoMensagemBase.setComunicationMensagems(comunicate);
+		dtoMensagemBase.setUsers(getUserOnline());
+		SendListClientsConenctionn(dtoMensagemBase,Client);
+		
+	}
+	
+	public void SendListClientsConenctionn(DTOMensagemBase dtoMensagemBase ,Socket Client)
+	{
+		try {
+			ObjectOutputStream objClient = new ObjectOutputStream(Client.getOutputStream());
+			objClient.writeObject(dtoMensagemBase);
+			objClient.flush();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public void SendListClientsConenction(DTOMensagemBase dtoMensagemBase ,Socket Client)
@@ -73,6 +100,7 @@ public class SrvSocket implements IMultiComunication {
 		try {
 			ObjectOutputStream objClient = new ObjectOutputStream(Client.getOutputStream());
 			objClient.writeObject(dtoMensagemBase);
+			objClient.flush();
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -82,8 +110,7 @@ public class SrvSocket implements IMultiComunication {
 	@Override
 	public synchronized void SendSpecificCliet(String comunicationID) 
 	{
-		try 
-		{
+
 			Comunication comunicate = getItemConversationStorage(comunicationID);
 			if (comunicate!=null)
 			{
@@ -94,33 +121,73 @@ public class SrvSocket implements IMultiComunication {
 					{
 						if (clientSearch.getClientUserID() == cliente.getClientUserID())
 						{
-							socket = listClientsConnected.get(clientSearch);							
+							socket = listClientsConnected.get(clientSearch);	
+							break;
 						}
 						
 					}					
 					System.out.println(comunicate.getLastItemMensagem().getMensage());
-					ObjectOutputStream objSocketClient = new ObjectOutputStream(socket.getOutputStream());
-					objSocketClient.writeObject(comunicate);
+					preparingSendMensagems(comunicate,socket);
+				//	ObjectOutputStream objSocketClient = new ObjectOutputStream(socket.getOutputStream());
+				//	objSocketClient.writeObject(comunicate);
 
 				}		
 			}
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+
 	}
+	public synchronized void SendGenericClient(DTOMensagemBase dtoMensagemBase ) 
+	{
+		for (Socket socket : listClientsConnected.values())
+		{
+			SendListClientsConenction(dtoMensagemBase,socket);
+		}	
+	}
+	
+
+	/*public synchronized Comunication getSetItemConversationStorage(Comunication newComunication)
+	{
+		boolean validate = false;
+		for (Comunication comunication : comunicationStorage) 
+		{
+			if (comunication.getComunicationID() == newComunication.getComunicationID())
+			{
+				comunication.set
+				return comunication;				
+			}
+		}
+		return null;		
+	}*/
+
+	
+	
 	@Override
 	public synchronized void SetItemConversationStorage(Comunication newComunication) {
 		Comunication comunicate = getItemConversationStorage(newComunication.getComunicationID());
 		if (comunicate!=null)
 		{
-			comunicate = newComunication;			
+			//comunicate = newComunication;
+			for (Mensagem mensagem : newComunication.getMensage()) {
+				comunicate.setItemMensagem(mensagem);
+			}
+			setItemConversationStorage(comunicate);
 		}
 		else
 		{
 			comunicationStorage.add(newComunication);			
 		}
 		
+	}
+	public synchronized boolean setItemConversationStorage(Comunication newComunication)
+	{
+		for (Comunication comunication : comunicationStorage) 
+		{
+			if (comunication.getComunicationID() == newComunication.getComunicationID())
+			{
+				comunication = newComunication;
+				return true;				
+			}
+		}
+		return false;		
 	}
 	@Override
 	public synchronized Comunication getItemConversationStorage(String comunicationID)

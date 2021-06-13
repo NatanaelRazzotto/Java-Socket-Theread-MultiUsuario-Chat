@@ -23,7 +23,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 
-public class ChatPrincipalController implements Initializable{
+public class ChatPrincipalController implements Initializable , IChatPrincipal{
 
 	@FXML
 	private Pane paneLogin;
@@ -52,6 +52,11 @@ public class ChatPrincipalController implements Initializable{
 	@FXML
 	private Button btnSend;
 	
+	@FXML
+	private Text txtNameUserActual;
+	@FXML
+	private Text txtNameUserInChannel;
+	
 	
 	private CliSocket clientSocket;	
 	private ClientUser clientUser;
@@ -71,17 +76,17 @@ public class ChatPrincipalController implements Initializable{
 		
 		try 
 		{					
-			if ((!txtFNameUser.getText().isEmpty())&&(!txtFNameSenha.getText().isEmpty()))
+			if ((!txtFNameUser.getText().isEmpty()))//&&(!txtFNameSenha.getText().isEmpty())
 			{			
-				ClientUser clientUser = new ClientUser(txtFNameUser.getText(), txtFNameSenha.getText());
-				clientSocket = new CliSocket("127.0.0.1",12345);
+				ClientUser clientUser = new ClientUser(txtFNameUser.getText(),"");//, txtFNameSenha.getText()
+				clientSocket = new CliSocket(this,"127.0.0.1",12345);
 				//
 				clientSocket.clientExecute(clientUser);	//DTOMensagemBase dtoMensagemBase = 
-			/*	if (dtoMensagemBase != null)
+				/*if (dtoMensagemBase != null)
 				{					
 					setClientSender(dtoMensagemBase.getClientActual());
 					listUsersOnlineBind(dtoMensagemBase);
-				}	*/			
+				}	*/		
 				
 			}
 			else
@@ -97,17 +102,28 @@ public class ChatPrincipalController implements Initializable{
 	}
 	
 	@FXML 
-	private void handleListViewClick(ActionEvent event) {		
-		String idComunication = Integer.toString(clientUser.getClientUserID());
-		//System.out.println(listUsersOnline.getSelectionModel().getSelectedItem());
+	private void handleListViewClick(ActionEvent event) {
+		String idComunication = "";
+		List<ClientUser> clients = new ArrayList<ClientUser>();		
 		int destinateIDList = listUsersOnline.getSelectionModel().getSelectedIndex();
 		ClientUser clientRecipient = usersOnline.get(destinateIDList);
-		idComunication += "-"+ clientRecipient.getClientUserID();
-		System.out.println(clientRecipient.getNomeUser());
 		
-		List<ClientUser> clients = new ArrayList<ClientUser>();
-		clients.add(clientUser);
-		clients.add(clientRecipient);
+		//System.out.println(clientRecipient.getNomeUser());	
+		
+		
+		if (clientUser.getClientUserID() == clientRecipient.getClientUserID())
+		{
+			clients.add(clientUser);
+			idComunication = Integer.toString(clientUser.getClientUserID());
+		}
+		else
+		{
+			clients.add(clientUser);
+			clients.add(clientRecipient);
+			idComunication = Integer.toString(clientUser.getClientUserID());
+			idComunication += "-"+ clientRecipient.getClientUserID();
+		}		
+
 		comunication.setComunicationID(idComunication);
 		comunication.setClientsComunication(clients);
 	} 
@@ -123,8 +139,11 @@ public class ChatPrincipalController implements Initializable{
 			//String mensagem = txtFNewMessage.getText();
 			if (!mensagem.getMensage().isEmpty())
 			{
-				comunication.setItemMensagem(mensagem);
-				clientSocket.sendNewMesagesComunication(comunication);				
+				Comunication comunica = new Comunication();
+				comunica.setComunicationID(comunication.getComunicationID());
+				comunica.setClientsComunication(comunication.getClientsComunication());
+				comunica.setItemMensagem(mensagem);
+				clientSocket.sendNewMesagesComunication(comunica);				
 			}
 			else
 			{
@@ -138,20 +157,76 @@ public class ChatPrincipalController implements Initializable{
 		}
 		
 	}
-	
-	private void setClientSender(ClientUser userClient) 
-	{		
+
+	@Override
+	public void UpdateFromPropertsUser(ClientUser clientActual) {
 		paneLogin.setVisible(false);
 		paneChat.setDisable(false);
-		this.clientUser = userClient;
-		txtNameUserSeccao.setText(userClient.getNomeUser());
+		this.clientUser = clientActual;
+		txtNameUserSeccao.setText(clientActual.getNomeUser());		
+	}
+
+	@Override
+	public void UpdateFromUsersOnline(List<ClientUser> users) {
+
+		//usersOnline = FXCollections.observableArrayList();	
+		
+		usersOnline.clear();
+		for (ClientUser clientUser : users) {
+			usersOnline.add(clientUser);
+		}
+		//listUsersOnline.setItems(usersOnline);	
+	}
+
+	@Override
+	public void UpdateChat(Comunication comunicationMensagems) {
+		setPropertsComunication(comunicationMensagems.getClientsComunication());
+		if (comunicationMensagems.getComunicationID().equals(comunication.getComunicationID()))
+		{
+			showMensages(comunicationMensagems.getMensage());			
+		}
+		else
+		{
+			txtAComunication.clear();
+			showMensages(comunicationMensagems.getMensage());				
+		}
+		
+		/*if(comunicationMensagems.getMensage().size() == comunication.getMensage().size())
+		{
+			txtAComunication.clear();				
+		}*/
+	}
+	private void setPropertsComunication (List<ClientUser> users) {
+		showPropertsChat(); 
+		comunication.setClientsComunication(users);
+	}
+	private void showMensages(List<Mensagem> listMensagens) {
+		String content = "";
+		//listMensagens.forEach(mensagemChat -> content. (mensagemChat.getMensage()));
+		for (Mensagem mensagem : listMensagens) {
+			content += "[ Enviada por: " + mensagem.getClientSender().getNomeUser()+"] " + mensagem.getMensage() + "\n";
+		}
+		txtAComunication.setText(content);
+		
+		//listMensagens.forEach(mensagemChat -> txtAComunication.setText(mensagemChat.getMensage()));
 		
 	}
-	
-	private void listUsersOnlineBind(DTOMensagemBase dtoMensagems) {
-		for (ClientUser clientUser : dtoMensagems.getUsers()) {
-			usersOnline.add(clientUser);
-		}		
-	}
+	private void showPropertsChat() 
+	{
+		if (clientUser !=null)
+		{
+			txtNameUserActual.setText(clientUser.getNomeUser());			
+		}
+		if (comunication != null)
+		{
+			String content = "";
+			List<ClientUser> usersClients = comunication.getClientsComunication();
+			for (ClientUser clientUser : usersClients) {
+				content += clientUser.getNomeUser() + ";";
+			}
+			txtNameUserInChannel.setText(content);			
+		}
+		
+	} 
 
 }

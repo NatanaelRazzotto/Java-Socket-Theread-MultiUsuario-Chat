@@ -9,7 +9,7 @@ public class DTOMensagemBase implements Serializable{
 	private static final long serialVersionUID = 2893148236158848790L;
 	private ClientUser clientActual;
 	private List<ClientUser> users;
-	private Comunication comunicationMansages;
+	private Comunication comunicationMensagems;
 	
 	public ClientUser getClientActual() {
 		return clientActual;
@@ -22,6 +22,12 @@ public class DTOMensagemBase implements Serializable{
 	}
 	public void setUsers(List<ClientUser> users) {
 		this.users = users;
+	}
+	public Comunication getComunicationMensagems() {
+		return comunicationMensagems;
+	}
+	public void setComunicationMensagems(Comunication comunicationMansages) {
+		this.comunicationMensagems = comunicationMansages;
 	}
 	
 	

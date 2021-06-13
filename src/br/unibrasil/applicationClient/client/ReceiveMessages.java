@@ -2,29 +2,35 @@ package br.unibrasil.applicationClient.client;
 
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.net.Socket;
 import java.util.Scanner;
 
 import br.unibrasil.shared.DTOMensagemBase;
+import javafx.application.Platform;
 
 public class ReceiveMessages implements Runnable{
 	
-	private InputStream inputServerSocket;
+	private Socket ServerSocket;
 	private IClientSocket iClientSocket;
+	private ObjectInputStream objServerSocket;
 
-	public ReceiveMessages(InputStream inputServerSocket,IClientSocket iClientSocket) {
-		this.inputServerSocket = inputServerSocket;		
+	public ReceiveMessages(Socket ServerSocket,IClientSocket iClientSocket) {
+		this.ServerSocket = ServerSocket;		
 		this.iClientSocket = iClientSocket;
 	}	
 
 	@Override
-	public void run() {
+	public void run() {	
+		
 		try 
-		{	
-			String recebido = "";
-			ObjectInputStream objServerSocket = new ObjectInputStream(inputServerSocket);		
+		{				
+			String recebido = "";				
 			while (!recebido.toUpperCase().equals("SAIR")) {
+				objServerSocket = new ObjectInputStream(ServerSocket.getInputStream());	
 				DTOMensagemBase dtoMensagemBase = (DTOMensagemBase) objServerSocket.readObject();
-				System.out.println("Recebeu Mensagem");
+				
+				Platform.runLater(new Updater(iClientSocket, dtoMensagemBase));
+				//iClientSocket.UpdateChat(dtoMensagemBase);
 			}
 			
 		} catch (Exception e) {

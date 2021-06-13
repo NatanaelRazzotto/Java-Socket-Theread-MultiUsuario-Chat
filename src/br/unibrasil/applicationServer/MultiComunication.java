@@ -23,17 +23,22 @@ public class MultiComunication implements Runnable {
 		try {
 			int count = 0;
 			ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
-			ClientUser cli = (ClientUser) ois.readObject();
+			//ClientUser cli = (ClientUser) ois.readObject();
+			ClientUser cli =  (ClientUser)  ois.readUnshared();
 			iMultiComunication.SetNewClient(cli,client);	
+			
 		
 			String Mensagem = "";
 			while(!Mensagem.toUpperCase().equals("SAIR"))
-			{
+			{				
 				System.out.println("Aguardando Nova Mensagem");			
 				Comunication comunication = (Comunication) ois.readObject();
+				//Comunication  comunication = (Comunication) ois.readUnshared();
+				System.out.println(comunication.getLastItemMensagem().getMensage());
 				//Mensagem = comunication.getMesage();
 				iMultiComunication.SetItemConversationStorage(comunication);
-				iMultiComunication.SendSpecificCliet(comunication.getComunicationID());
+				iMultiComunication.SendSpecificCliet(comunication.getComunicationID());		
+				
 				
 			}
 			
