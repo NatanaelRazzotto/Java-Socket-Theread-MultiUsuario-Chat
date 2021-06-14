@@ -6,10 +6,10 @@ import java.util.List;
 
 public class Comunication implements Serializable{
 	private static final long serialVersionUID = 7715544495365543785L;
+	private CodigoComunication codigoComunication;
 	private String ComunicationID;	
 	private List<ClientUser> clientsComunication;
-	private List<Mensagem> mensages;	
-	
+	private List<Mensagem> mensages;
 	
 
 	public Comunication() {
@@ -40,6 +40,12 @@ public class Comunication implements Serializable{
 	}
 	public Mensagem getLastItemMensagem() {
 		return this.mensages.get(mensages.size()-1);
+	}
+	public CodigoComunication getCodigoComunication() {
+		return codigoComunication;
+	}
+	public void setCodigoComunication(CodigoComunication codigoComunication) {
+		this.codigoComunication = codigoComunication;
 	}
 	
 	

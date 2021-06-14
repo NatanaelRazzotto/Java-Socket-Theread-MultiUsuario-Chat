@@ -2,8 +2,10 @@ package br.unibrasil.applicationClient.client;
 
 import br.unibrasil.applicationClient.application.IChatPrincipal;
 import br.unibrasil.shared.ClientUser;
+import br.unibrasil.shared.CodigoComunication;
 import br.unibrasil.shared.Comunication;
 import br.unibrasil.shared.DTOMensagemBase;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -19,64 +21,47 @@ public class CliSocket implements IClientSocket{
 	private ClientUser clientUser;
 	private Socket client;
 	private ObjectOutputStream objClient;
+	private Stage primaryStage;
 	
 	private IChatPrincipal chatPrincipal;
 	
-	public CliSocket(IChatPrincipal chatPrincipal,String host,int port) {
+	public CliSocket(IChatPrincipal chatPrincipal,String host,int port,Stage primaryStage) {
 		this.chatPrincipal = chatPrincipal;
 		this.host = host;
-		this.port = port;		
-	//	clientUser = new ClientUser();
+		this.port = port;	
+		this.primaryStage = primaryStage;
 	}
-	public void clientExecute(ClientUser clientUser) throws ClassNotFoundException {		
-		DTOMensagemBase dtoMensagemBase = null;
+	public void clientExecute(ClientUser clientUser) throws ClassNotFoundException {	
+		
 		try {
 			client = new Socket(host,port);
 			
 			objClient = new ObjectOutputStream(client.getOutputStream());
 			objClient.writeObject(clientUser);		
-			
-			//ObjectInputStream objServerSocket = new ObjectInputStream(client.getInputStream());
-			
-			//ObjectInputStream objServeSocket = new ObjectInputStream(client.getInputStream());	
-			//DTOMensagemBase dtoMensagemBse = (DTOMensagemBase) objServeSocket.readObject();
-			
-			
-			Thread receiver = new Thread(new ReceiveMessages(client, this));
+
+			Thread receiver = new Thread(new ReceiveMessages(client, this, primaryStage));
 		    receiver.start();				
 		
 			
 		} catch (IOException e) {
-
 			e.printStackTrace();
 		}			
 	}
-	public Comunication sendNewMesagesComunication(Comunication communication) {
+	public boolean sendNewMesagesComunication(Comunication communication) {
 		try 
 		{
 			objClient.writeObject(communication);
 			objClient.flush();
 			System.out.println("Nova mensagem submetida");
+			return true;
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-		return null;
+		return false;
 		
 	}
-	public DTOMensagemBase receiveMensagesFromServidor() {
-		try {
-			
-			
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return null;
-	}
-
 
 	public void Execute() {		
 		try {
@@ -84,27 +69,14 @@ public class CliSocket implements IClientSocket{
 			ObjectOutputStream objClient = new ObjectOutputStream(client.getOutputStream());
 			System.out.println("Cliente conectado no servidor");			
 			System.out.println("Para encerrar o Cliente: SAIR;");	
-			//clientUser.setMensage("Teste Hello");
-			objClient.writeObject(clientUser);
-			
-			//new Thread(new ReceiveMessages(client.getInputStream())).start();
-			
-			/*String linha = "";
-			while ((!linha.toUpperCase().equals("SAIR"))&&(!linha.toUpperCase().equals("FECHAR"))) {
-				clientUser.setMensage(teclado.nextLine());
-				objClient.writeObject(clientUser);
-			//	linha = teclado.nextLine();
-			//	saida.println(linha);	
-			}	*/	
-			
+			objClient.writeObject(clientUser);			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
 	}
 	@Override
-	public void UpdateChat(DTOMensagemBase dtoMensagemBase) {
-		
+	public void UpdateChat(DTOMensagemBase dtoMensagemBase) {		
 	
 		if ((dtoMensagemBase.getClientActual()!=null))
 		{
@@ -114,17 +86,20 @@ public class CliSocket implements IClientSocket{
 		{
 			chatPrincipal.UpdateFromUsersOnline(dtoMensagemBase.getUsers());
 		}
-		if (dtoMensagemBase.getComunicationMensagems() !=null)
+		if (dtoMensagemBase.getComunicationMensagems().getCodigoComunication() != CodigoComunication.LOGIN)
 		{
 			chatPrincipal.UpdateChat(dtoMensagemBase.getComunicationMensagems());
-		}
+		}	
 		
-		
-		/*if (dtoMensagemBase != null)
-		{					
-			setClientSender(dtoMensagemBase.getClientActual());
-			listUsersOnlineBind(dtoMensagemBase);
-		}	*/		
-		
+	}
+	public void CloseClient() {
+		Comunication comunication = new Comunication();
+		comunication.setCodigoComunication(CodigoComunication.EXIT);
+		sendNewMesagesComunication(comunication);		
+	}
+	public void CloseServer() {
+		Comunication comunication = new Comunication();
+		comunication.setCodigoComunication(CodigoComunication.SERVEROUT);
+		sendNewMesagesComunication(comunication);		
 	}
 }

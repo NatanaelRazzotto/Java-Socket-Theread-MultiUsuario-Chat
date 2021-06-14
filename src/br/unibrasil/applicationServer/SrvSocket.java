@@ -16,54 +16,78 @@ import java.util.Set;
 import br.unibrasil.shared.*;
 
 public class SrvSocket implements IMultiComunication {
-//	private ArrayList<PrintStream> listPrintStreams = new ArrayList<PrintStream>();
+
 	private HashMap<ClientUser, Socket> listClientsConnected = new HashMap<ClientUser, Socket>();
 	private List<Comunication> comunicationStorage = new ArrayList<Comunication>();
-	
+	private int contadadorID = 0;
 	public void execute() {
 		try {
-			ServerSocket server = new ServerSocket(12345);	
-			
-				while(true) 
+			int Requisicao = 1;
+			ServerSocket server = new ServerSocket(60000);
+			System.out.println("----Servidor foi Iniciado--Nº Porta:60000-----");
+			CodigoComunication codigoComunication = CodigoComunication.CONVERSATION;
+				while(codigoComunication.equals(codigoComunication.CONVERSATION)) 
 				{					
 					System.out.println("Aguardando conexão");
 					Socket client = server.accept();
 					System.out.println("Conectou!!");
 					
-					//listPrintStreams.add(new PrintStream(client.getOutputStream()));
-					new Thread(new MultiComunication(this,client)).start();
+					Thread threadChat = new Thread(new MultiComunication(this,client,server));
+					threadChat.currentThread().setName("Thread_Client_Req" + Requisicao);
+					threadChat.start();
+					
+					Requisicao ++;
 				}
-			//server.close();  
+			server.close();  
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}		
 		
 	}
-	@Override
-	public synchronized void SendAll(String mensage) {
-		//listPrintStreams.forEach(saida -> saida.println(mensage));
-	}
-	@Override
-	public synchronized void SetNewClient(ClientUser user, Socket socketClient) {
-		DTOMensagemBase dtoMensagemBase = new DTOMensagemBase();
-		int qtdConected = listClientsConnected.size();		
-		if (qtdConected == 0)
+	
+	public synchronized int GetId() {
+		if (contadadorID == 0)
 		{
-			user.setClientUserID(1);
-			listClientsConnected.put(user, socketClient);	
-
+			contadadorID = 1;
+			return contadadorID;
 		}
 		else
 		{
-			user.setClientUserID(qtdConected + 1);	
-			listClientsConnected.put(user, socketClient);	
+			contadadorID ++;
+			return contadadorID;
+		}
+	}
+	
+	@Override
+	public synchronized void SetNewClient(ClientUser user, Socket socketClient) {
+		DTOMensagemBase dtoMensagemBase = new DTOMensagemBase();
 
-		}			
-		
+		user.setClientUserID(GetId());	
+		listClientsConnected.put(user, socketClient);	
+
+		Comunication comunication = new Comunication();
+		comunication.setCodigoComunication(CodigoComunication.LOGIN);
+		dtoMensagemBase.setComunicationMensagems(comunication);
 		dtoMensagemBase.setClientActual(user);
 		dtoMensagemBase.setUsers(getUserOnline());
-		//SendListClientsConenction(dtoMensagemBase,socketClient);
+		SendGenericClient(dtoMensagemBase);
+	}
+	@Override
+	public void exitClient(Socket socketClient) {
+		Comunication comunication = new Comunication();
+		comunication.setCodigoComunication(CodigoComunication.EXIT);
+		DTOMensagemBase dtoMensagemBase = new DTOMensagemBase();
+		dtoMensagemBase.setComunicationMensagems(comunication);
+		SendListClientsConenction(dtoMensagemBase, socketClient);
+		
+	}
+	@Override
+	public void exitAllClients() {
+		Comunication comunication = new Comunication();
+		comunication.setCodigoComunication(CodigoComunication.EXIT);
+		DTOMensagemBase dtoMensagemBase = new DTOMensagemBase();
+		dtoMensagemBase.setComunicationMensagems(comunication);
 		SendGenericClient(dtoMensagemBase);
 	}
 	
@@ -78,7 +102,7 @@ public class SrvSocket implements IMultiComunication {
 		DTOMensagemBase dtoMensagemBase = new DTOMensagemBase();
 		dtoMensagemBase.setComunicationMensagems(comunicate);
 		dtoMensagemBase.setUsers(getUserOnline());
-		SendListClientsConenctionn(dtoMensagemBase,Client);
+		SendListClientsConenction(dtoMensagemBase,Client);
 		
 	}
 	
@@ -123,41 +147,21 @@ public class SrvSocket implements IMultiComunication {
 						{
 							socket = listClientsConnected.get(clientSearch);	
 							break;
-						}
-						
+						}						
 					}					
 					System.out.println(comunicate.getLastItemMensagem().getMensage());
 					preparingSendMensagems(comunicate,socket);
-				//	ObjectOutputStream objSocketClient = new ObjectOutputStream(socket.getOutputStream());
-				//	objSocketClient.writeObject(comunicate);
-
 				}		
 			}
 
 	}
-	public synchronized void SendGenericClient(DTOMensagemBase dtoMensagemBase ) 
+	public void SendGenericClient(DTOMensagemBase dtoMensagemBase ) //synchronized
 	{
 		for (Socket socket : listClientsConnected.values())
 		{
 			SendListClientsConenction(dtoMensagemBase,socket);
 		}	
-	}
-	
-
-	/*public synchronized Comunication getSetItemConversationStorage(Comunication newComunication)
-	{
-		boolean validate = false;
-		for (Comunication comunication : comunicationStorage) 
-		{
-			if (comunication.getComunicationID() == newComunication.getComunicationID())
-			{
-				comunication.set
-				return comunication;				
-			}
-		}
-		return null;		
-	}*/
-
+	}	
 	
 	
 	@Override
@@ -165,7 +169,6 @@ public class SrvSocket implements IMultiComunication {
 		Comunication comunicate = getItemConversationStorage(newComunication.getComunicationID());
 		if (comunicate!=null)
 		{
-			//comunicate = newComunication;
 			for (Mensagem mensagem : newComunication.getMensage()) {
 				comunicate.setItemMensagem(mensagem);
 			}
@@ -204,7 +207,6 @@ public class SrvSocket implements IMultiComunication {
 		String condicionalInvertido =  arrayID[1]+"-"+arrayID[0];
 		for (Comunication comunication : comunicationStorage) 
 		{
-			//String a = comunication.getComunicationID().toString();
 			if ((comunication.getComunicationID().equals(condicional)||comunication.getComunicationID().equals(condicionalInvertido)))
 			{
 				return comunication;				
@@ -233,6 +235,7 @@ public class SrvSocket implements IMultiComunication {
 			List<Mensagem> mensagems = new ArrayList<Mensagem>();
 			mensagems.add(mensagem);
 			Comunication comunication = new Comunication();
+			comunication.setCodigoComunication(CodigoComunication.CONVERSATION);
 			comunication.setMensage(mensagems);
 			DTOMensagemBase dtoMensagemBase = new DTOMensagemBase();
 			dtoMensagemBase.setUsers(getUserOnline());

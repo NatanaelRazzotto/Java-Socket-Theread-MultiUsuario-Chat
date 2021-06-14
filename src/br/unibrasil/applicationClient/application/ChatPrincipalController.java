@@ -8,9 +8,11 @@ import java.util.ResourceBundle;
 
 import br.unibrasil.applicationClient.client.CliSocket;
 import br.unibrasil.shared.ClientUser;
+import br.unibrasil.shared.CodigoComunication;
 import br.unibrasil.shared.Comunication;
 import br.unibrasil.shared.DTOMensagemBase;
 import br.unibrasil.shared.Mensagem;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -22,6 +24,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public class ChatPrincipalController implements Initializable , IChatPrincipal{
 
@@ -39,6 +43,8 @@ public class ChatPrincipalController implements Initializable , IChatPrincipal{
 	private Button btnIniciarConversa;
 	@FXML 
 	private Text txtNameUserSeccao;
+	@FXML 
+	private Text txtIdUserSeccao;
 	
 	@FXML
 	private ListView<ClientUser> listUsersOnline;
@@ -51,6 +57,8 @@ public class ChatPrincipalController implements Initializable , IChatPrincipal{
 	private TextArea txtAComunication;
 	@FXML
 	private Button btnSend;
+	@FXML
+	private Button btnClose;
 	
 	@FXML
 	private Text txtNameUserActual;
@@ -62,43 +70,34 @@ public class ChatPrincipalController implements Initializable , IChatPrincipal{
 	private ClientUser clientUser;
 	private Comunication comunication;
 	private ObservableList<ClientUser> usersOnline;
+	private Stage primaryStage;
 	
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		this.comunication = new Comunication();
 		usersOnline = FXCollections.observableArrayList();
-		listUsersOnline.setItems(usersOnline);		
+		listUsersOnline.setItems(usersOnline);			
 	}
 	
 	@FXML
 	private void btnLogarOnClick(ActionEvent event)
-	{
-		
+	{		
 		try 
 		{					
-			if ((!txtFNameUser.getText().isEmpty()))//&&(!txtFNameSenha.getText().isEmpty())
+			if ((!txtFNameUser.getText().isEmpty()))
 			{			
-				ClientUser clientUser = new ClientUser(txtFNameUser.getText(),"");//, txtFNameSenha.getText()
-				clientSocket = new CliSocket(this,"127.0.0.1",12345);
-				//
-				clientSocket.clientExecute(clientUser);	//DTOMensagemBase dtoMensagemBase = 
-				/*if (dtoMensagemBase != null)
-				{					
-					setClientSender(dtoMensagemBase.getClientActual());
-					listUsersOnlineBind(dtoMensagemBase);
-				}	*/		
-				
+				ClientUser clientUser = new ClientUser(txtFNameUser.getText(),"");
+				clientSocket = new CliSocket(this,"127.0.0.1",60000, primaryStage);
+				clientSocket.clientExecute(clientUser);					
 			}
 			else
 			{
-				txtStatusLogin.setText("Não foi Possivel Logar!");
-				
+				txtStatusLogin.setText("Não foi Possivel Logar!");				
 			}	
 		
 		} catch (Exception e) {
 			e.printStackTrace();
-		}	
-		
+		}			
 	}
 	
 	@FXML 
@@ -107,8 +106,6 @@ public class ChatPrincipalController implements Initializable , IChatPrincipal{
 		List<ClientUser> clients = new ArrayList<ClientUser>();		
 		int destinateIDList = listUsersOnline.getSelectionModel().getSelectedIndex();
 		ClientUser clientRecipient = usersOnline.get(destinateIDList);
-		
-		//System.out.println(clientRecipient.getNomeUser());	
 		
 		
 		if (clientUser.getClientUserID() == clientRecipient.getClientUserID())
@@ -128,35 +125,54 @@ public class ChatPrincipalController implements Initializable , IChatPrincipal{
 		comunication.setComunicationID(idComunication);
 		comunication.setClientsComunication(clients);
 	} 
-	
 	@FXML
 	private void btnSendOnClick(ActionEvent event)
 	{
 		try {
 			Mensagem mensagem = new Mensagem();
 			mensagem.setClientSender(clientUser);
-			mensagem.setMensage(txtFNewMessage.getText());//txtFNewMessage.getText()//"Teste de Socket"
-			
-			//String mensagem = txtFNewMessage.getText();
+			mensagem.setMensage(txtFNewMessage.getText());
+
 			if (!mensagem.getMensage().isEmpty())
 			{
-				Comunication comunica = new Comunication();
-				comunica.setComunicationID(comunication.getComunicationID());
-				comunica.setClientsComunication(comunication.getClientsComunication());
-				comunica.setItemMensagem(mensagem);
-				clientSocket.sendNewMesagesComunication(comunica);				
+				if (comunication.getComunicationID() != null)
+				{
+					Comunication comunica = new Comunication();
+					comunica.setCodigoComunication(CodigoComunication.CONVERSATION);
+					comunica.setComunicationID(comunication.getComunicationID());
+					comunica.setClientsComunication(comunication.getClientsComunication());
+					comunica.setItemMensagem(mensagem);
+					boolean checkSend = clientSocket.sendNewMesagesComunication(comunica);		
+					if (checkSend)
+					{
+						txtFNewMessage.clear();					
+					}
+					else
+					{
+						System.out.println("A Mensagem não foi enviada!");
+					}
+				}
+				else
+				{
+					txtAComunication.setText("!!! Defina quem recebe a mensagem !!!!");
+				}
 			}
 			else
 			{
 				System.out.println("Mensagem em branco");
-			}
-			
+			}			
 			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
+	}
+	@FXML
+	private void handleBtnClose(ActionEvent event)
+	{
+		clientSocket.CloseServer();
+		System.out.println("Encerrando Server");
 	}
 
 	@Override
@@ -167,53 +183,55 @@ public class ChatPrincipalController implements Initializable , IChatPrincipal{
 			paneChat.setDisable(false);
 			this.clientUser = clientActual;
 			txtNameUserSeccao.setText(clientActual.getNomeUser());	
+			txtIdUserSeccao.setText(Integer.toString(clientActual.getClientUserID()));
 		}
 	}
 
 	@Override
-	public void UpdateFromUsersOnline(List<ClientUser> users) {
-
-		//usersOnline = FXCollections.observableArrayList();	
+	public void UpdateFromUsersOnline(List<ClientUser> users) {	
 		
 		usersOnline.clear();
 		for (ClientUser clientUser : users) {
 			usersOnline.add(clientUser);
 		}
-		//listUsersOnline.setItems(usersOnline);	
+
 	}
 
 	@Override
 	public void UpdateChat(Comunication comunicationMensagems) {
+		
 		setPropertsComunication(comunicationMensagems);
-		if (comunicationMensagems.getComunicationID().equals(comunication.getComunicationID()))
+		if (comunicationMensagems.getComunicationID() != null)
 		{
-			showMensages(comunicationMensagems.getMensage());			
+			if (comunicationMensagems.getComunicationID().equals(comunication.getComunicationID()))
+			{
+				showMensages(comunicationMensagems.getMensage());			
+			}
+			else
+			{
+				txtAComunication.clear();
+				showMensages(comunicationMensagems.getMensage());				
+			}	
 		}
 		else
 		{
-			txtAComunication.clear();
-			showMensages(comunicationMensagems.getMensage());				
+			showMensages(comunicationMensagems.getMensage());	
 		}
-		
-		/*if(comunicationMensagems.getMensage().size() == comunication.getMensage().size())
-		{
-			txtAComunication.clear();				
-		}*/
 	}
 	private void setPropertsComunication (Comunication users) {
 		showPropertsChat(); 
-		comunication.setComunicationID(users.getComunicationID());
-		comunication.setClientsComunication(users.getClientsComunication());
+		if (users.getComunicationID() != null)
+		{
+			comunication.setComunicationID(users.getComunicationID());
+			comunication.setClientsComunication(users.getClientsComunication());
+		}
 	}
 	private void showMensages(List<Mensagem> listMensagens) {
 		String content = "";
-		//listMensagens.forEach(mensagemChat -> content. (mensagemChat.getMensage()));
 		for (Mensagem mensagem : listMensagens) {
 			content += "[ Enviada por: " + mensagem.getClientSender().getNomeUser()+"] " + mensagem.getMensage() + "\n";
 		}
 		txtAComunication.setText(content);
-		
-		//listMensagens.forEach(mensagemChat -> txtAComunication.setText(mensagemChat.getMensage()));
 		
 	}
 	private void showPropertsChat() 
@@ -227,10 +245,20 @@ public class ChatPrincipalController implements Initializable , IChatPrincipal{
 			String content = "";
 			List<ClientUser> usersClients = comunication.getClientsComunication();
 			for (ClientUser clientUser : usersClients) {
-				content += clientUser.getNomeUser() + ";";
+				content += "><" +clientUser.getNomeUser();
 			}
 			txtNameUserInChannel.setText(content);			
 		}
+		
+	}
+
+	public void setStageAndSetup(Stage primaryStage) {
+		this.primaryStage = primaryStage;		
+		System.out.println("Referenciando a Stage da Aplicação");
+	} 
+	public void setCloseClient() {
+		System.out.println("Encerrando Client");
+		clientSocket.CloseClient();
 		
 	} 
 

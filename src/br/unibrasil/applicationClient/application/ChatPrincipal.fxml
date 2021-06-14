@@ -27,7 +27,7 @@
                         <Text layoutX="14.0" layoutY="41.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Nome de Usuário:" />
                         <Text fx:id="txtNameUserSeccao" layoutX="14.0" layoutY="64.0" strokeType="OUTSIDE" strokeWidth="0.0" text="........................................................." />
                         <Text layoutX="133.0" layoutY="41.0" strokeType="OUTSIDE" strokeWidth="0.0" text="ID:" />
-                        <Text fx:id="txtNameUserSeccao1" layoutX="162.0" layoutY="41.0" strokeType="OUTSIDE" strokeWidth="0.0" text="............" wrappingWidth="38.25" />
+                        <Text fx:id="txtIdUserSeccao" layoutX="162.0" layoutY="41.0" strokeType="OUTSIDE" strokeWidth="0.0" text="............" wrappingWidth="38.25" />
                      </children>
                   </Pane>
                   <Button fx:id="btnIniciarConversa" layoutX="96.0" layoutY="439.0" mnemonicParsing="false" onAction="#handleListViewClick" prefHeight="25.0" prefWidth="161.0" text="Selecionar Destinatario" />
@@ -44,37 +44,34 @@
                               <Font name="System Bold" size="15.0" />
                            </font>
                         </Label>
-                        <Text fx:id="txtNameUserActual" layoutX="20.0" layoutY="52.0" strokeType="OUTSIDE" strokeWidth="0.0" text="USUÁRIO ATUAL" wrappingWidth="126.0">
+                        <Text fx:id="txtNameUserActual" layoutX="14.0" layoutY="60.0" strokeType="OUTSIDE" strokeWidth="0.0" text="USUÁRIO ATUAL" wrappingWidth="126.0">
                            <font>
                               <Font size="15.0" />
                            </font>
                         </Text>
-                        <Text layoutX="133.0" layoutY="51.0" strokeType="OUTSIDE" strokeWidth="0.0" text="&gt;&lt;" wrappingWidth="26.0">
-                           <font>
-                              <Font name="System Bold" size="15.0" />
-                           </font>
-                        </Text>
-                        <Text fx:id="txtNameUserInChannel" layoutX="159.0" layoutY="51.0" strokeType="OUTSIDE" strokeWidth="0.0" text="USUÁRIO CONVERSA" wrappingWidth="148.2890625">
+                        <Text fx:id="txtNameUserInChannel" layoutX="159.0" layoutY="50.0" strokeType="OUTSIDE" strokeWidth="0.0" text="USUÁRIO CONVERSA" wrappingWidth="335.2890625">
                            <font>
                               <Font size="15.0" />
                            </font>
                         </Text>
-                        <Button fx:id="btnSend1" layoutX="415.0" layoutY="397.0" mnemonicParsing="false" onAction="#btnSendOnClick" prefHeight="20.0" prefWidth="68.0" text="RECEBER" />
+                        <Button fx:id="btnClose" layoutX="415.0" layoutY="397.0" mnemonicParsing="false" onAction="#btnSendOnClick" prefHeight="20.0" prefWidth="68.0" text="CLOSE" />
+                        <Text layoutX="15.0" layoutY="43.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Usuário:" />
+                        <Text layoutX="160.0" layoutY="33.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Em Conversa:" />
                      </children>
                   </Pane>
-                  <Pane id="PaneLogin" fx:id="paneLogin" layoutX="27.0" layoutY="119.0" prefHeight="201.0" prefWidth="448.0" style="-fx-background-color: GAINSBORO;">
+                  <Pane id="PaneLogin" fx:id="paneLogin" layoutX="27.0" layoutY="137.0" prefHeight="151.0" prefWidth="448.0" style="-fx-background-color: GAINSBORO;">
                      <children>
                         <Label layoutX="23.0" layoutY="14.0" prefHeight="40.0" prefWidth="120.0" text="TELA DE LOGIN">
                            <font>
                               <Font name="System Bold" size="15.0" />
                            </font>
                         </Label>
-                        <TextField fx:id="txtFNameUser" layoutX="143.0" layoutY="60.0" prefHeight="25.0" prefWidth="289.0" />
-                        <Text layoutX="35.0" layoutY="77.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Nome de Usuário:" />
-                        <TextField id="txtFNameSenha" fx:id="txtFNameSenha" layoutX="143.0" layoutY="101.0" prefHeight="25.0" prefWidth="289.0" />
-                        <Text layoutX="35.0" layoutY="118.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Senha de Usuário:" />
-                        <Button id="btnLogarSecao" fx:id="btnLogarSecao" layoutX="327.0" layoutY="147.0" mnemonicParsing="false" onAction="#btnLogarOnClick" prefHeight="25.0" prefWidth="105.0" text="LOGAR" />
-                        <Text fx:id="txtStatusLogin" layoutX="300.0" layoutY="38.0" strokeType="OUTSIDE" strokeWidth="0.0" text="BEM VINDO!" />
+                        <TextField fx:id="txtFNameUser" layoutX="143.0" layoutY="62.0" prefHeight="25.0" prefWidth="289.0" />
+                        <Text layoutX="35.0" layoutY="79.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Nome de Usuário:" />
+                        <TextField id="txtFNameSenha" fx:id="txtFNameSenha" layoutX="143.0" layoutY="101.0" prefHeight="25.0" prefWidth="289.0" visible="false" />
+                        <Text layoutX="35.0" layoutY="118.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Senha de Usuário:" visible="false" />
+                        <Button id="btnLogarSecao" fx:id="btnLogarSecao" layoutX="327.0" layoutY="110.0" mnemonicParsing="false" onAction="#btnLogarOnClick" prefHeight="25.0" prefWidth="105.0" text="LOGAR" />
+                        <Text fx:id="txtStatusLogin" layoutX="353.0" layoutY="39.0" strokeType="OUTSIDE" strokeWidth="0.0" text="BEM VINDO!" />
                      </children>
                   </Pane>
                </children>

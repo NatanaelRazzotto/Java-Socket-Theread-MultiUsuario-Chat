@@ -6,25 +6,9 @@ public class ClientUser implements Serializable{
 
 	private static final long serialVersionUID = -1990682105391806077L;
 	private int clientUserID;
-	//private int DestinatarioUserID;
 	private String nomeUser;
-	//private String email;
-	private String senha;
-//	private String mensage;
-	
-	
-/*	public int getDestinatarioUserID() {
-		return DestinatarioUserID;
-	}
-	public void setDestinatarioUserID(int destinatarioUserID) {
-		DestinatarioUserID = destinatarioUserID;
-	}
-	public String getMensage() {
-		return mensage;
-	}
-	public void setMensage(String mensage) {
-		this.mensage = mensage;
-	}*/
+	private String senha;	
+
 	public int getClientUserID() {
 		return clientUserID;
 	}
@@ -37,12 +21,7 @@ public class ClientUser implements Serializable{
 	public void setNomeUser(String nomeUser) {
 		this.nomeUser = nomeUser;
 	}
-/*	public String getEmail() {
-		return email;
-	}
-	public void setEmail(String email) {
-		this.email = email;
-	}*/
+
 	public String getSenha() {
 		return senha;
 	}
